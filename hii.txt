@@ -1,0 +1,126 @@
+import React, { useState, useEffect } from "react";
+import "./App.css";
+import Student from "./Student";
+
+function App() {
+  const [list, setList] = useState([]);
+
+  async function getdata() {
+    try {
+      const takeresponse = await fetch("https://mymeeshoweb.onrender.com/getdatastudent");
+      const takedata = await takeresponse.json();
+
+      console.log("Fetched Students Data (JSON):", takedata);
+
+      setList(takedata);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  useEffect(() => {
+    getdata();
+  }, []);
+
+  const handleDelete = async (item) => {
+    const optionapi = {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: "",
+    };
+
+    try {
+      const response = await fetch(
+        `https://mymeeshoweb.onrender.com/deletedatastudent/${item.name}`,
+        optionapi
+      );
+      const result = await response.json();
+
+      console.log("Delete Response Data (JSON):", result);
+
+      if (result.data?.deletedCount > 0) {
+        getdata();
+        alert("data deleted");
+      } else {
+        alert("data not deleted");
+      }
+    } catch (error) {
+      console.error("Error deleting data:", error);
+    }
+  };
+
+  function handleStudent(item) {
+    alert("Student Name: " + JSON.stringify(item));
+  }
+
+  return (
+    <>
+      <h1>Student Record</h1>
+      <table border="1" cellPadding="10">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Course</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <Student
+            data={list}
+            onrowclick={handleStudent}
+            ondelete={handleDelete}
+          />
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+export default App;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function Student({ data, onrowclick, ondelete }) {
+  return (
+    <>
+      {data.length > 0 ? (
+        data.map((item, index) => (
+          <tr key={item._id || index}>
+            <td>{index + 1}</td>
+            <td>{item.name}</td>
+            <td>{item.age}</td>
+            <td>{item.course}</td>
+            <td>
+              <button onClick={() => onrowclick(item)}>View</button>
+              <button onClick={() => ondelete(item)}>Delete</button>
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan="5">No records found</td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+export default Student;
